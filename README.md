@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Stake Service
 
-## Getting Started
+Simple QR-code-driven web app for logging service hours during a stake service event.
 
-First, run the development server:
+- **Public form** (`/`) — full-width, mobile-first multi-step form for unit, project, hours, story, photos, name.
+- **Admin dashboard** (`/admin`) — password-gated metrics, charts, submissions table, photo previews.
+- **CSV export** (`/api/admin/export`) — one-click download of all submissions.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Stack
+
+- Next.js (App Router) + TypeScript + Tailwind
+- Supabase Postgres + Storage
+- Recharts for graphs
+- Deployed on Vercel
+
+## Setup
+
+### 1. Create Supabase project
+
+1. Go to https://supabase.com → new project.
+2. In the SQL editor, run:
+
+```sql
+create table public.submissions (
+  id uuid primary key,
+  created_at timestamptz not null default now(),
+  unit text not null,
+  name text,
+  hours numeric not null,
+  project text not null,
+  story text,
+  photo_paths text[] not null default '{}'
+);
+
+create index on public.submissions (created_at desc);
+create index on public.submissions (unit);
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. In **Storage**, create a bucket named `service-photos`, mark it **Public**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2. Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Copy `.env.local.example` to `.env.local` and fill in:
 
-## Learn More
+```
+NEXT_PUBLIC_SUPABASE_URL=...        # Supabase project URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...   # anon public key
+SUPABASE_SERVICE_ROLE_KEY=...       # service role (server only)
+ADMIN_PASSWORD=...                  # any string — guards /admin
+```
 
-To learn more about Next.js, take a look at the following resources:
+The service role key is used server-side only (insert + storage upload). The form bypasses RLS via the service client, so RLS can stay off for v1.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Run locally
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm install
+npm run dev
+```
 
-## Deploy on Vercel
+- Public form: http://localhost:3000
+- Admin: http://localhost:3000/admin
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deploying
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Push to GitHub, import into Vercel, set the four env vars from `.env.local.example`. After deploy, generate a QR code pointing at the URL (e.g. qr-code-generator.com) and put it on the flyer.
+
+## Project layout
+
+```
+app/
+  page.tsx                    public multi-step form
+  admin/
+    page.tsx                  dashboard
+    charts.tsx                Recharts client component
+    login/page.tsx            password screen
+  api/
+    submit/route.ts           form submission + photo upload
+    admin/login/route.ts      sets admin cookie
+    admin/export/route.ts     CSV export
+lib/
+  supabase.ts                 service + browser clients, types
+  units.ts                    list of wards
+proxy.ts                      guards /admin and /api/admin
+```
