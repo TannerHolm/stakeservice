@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { UNITS } from "@/lib/units";
 import { compressImage } from "@/lib/compress";
+import { getBrowserClient, PHOTOS_BUCKET } from "@/lib/supabase";
 
 type FormState = {
   unit: string;
@@ -57,14 +58,40 @@ export default function Home() {
     setSubmitting(true);
     setError(null);
     try {
-      const fd = new FormData();
-      fd.append("unit", form.unit);
-      fd.append("project", form.project);
-      fd.append("hours", form.hours);
-      fd.append("story", form.story);
-      fd.append("name", form.name);
-      for (const file of form.photos) fd.append("photos", file);
-      const res = await fetch("/api/submit", { method: "POST", body: fd });
+      const photoPaths: string[] = [];
+      if (form.photos.length > 0) {
+        const supabase = getBrowserClient();
+        for (const file of form.photos) {
+          const urlRes = await fetch("/api/upload-url", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ filename: file.name, contentType: file.type }),
+          });
+          if (!urlRes.ok) {
+            const body = await urlRes.json().catch(() => ({}));
+            throw new Error(body.error || "Could not get upload URL");
+          }
+          const { path, token } = await urlRes.json();
+          const { error: upErr } = await supabase.storage
+            .from(PHOTOS_BUCKET)
+            .uploadToSignedUrl(path, token, file, { contentType: file.type });
+          if (upErr) throw new Error(`Photo upload failed: ${upErr.message}`);
+          photoPaths.push(path);
+        }
+      }
+
+      const res = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          unit: form.unit,
+          project: form.project,
+          hours: parseFloat(form.hours),
+          story: form.story,
+          name: form.name,
+          photoPaths,
+        }),
+      });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || "Submission failed");
