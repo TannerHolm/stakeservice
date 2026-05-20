@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Stake Service",
+  title: "Logan East Stake Service",
   description: "Log your service hours",
 };
 

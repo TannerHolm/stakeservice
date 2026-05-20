@@ -11,7 +11,9 @@ export default function Landing() {
       className="h-[100dvh] flex flex-col items-center justify-center px-6 py-12"
     >
       <div className="w-full max-w-2xl">
-        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight mb-2 text-center">
+        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight mb-2 text-center text-balance">
+          Logan East
+          <br />
           Stake Service
         </h1>
         <p className="text-white/80 text-center mb-10">
