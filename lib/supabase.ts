@@ -32,3 +32,25 @@ export type Submission = {
   story: string | null;
   photo_paths: string[];
 };
+
+export type ServiceEvent = {
+  id: string;
+  created_at: string;
+  title: string;
+  description: string | null;
+  location: string | null;
+  starts_at: string;
+  ends_at: string | null;
+  unit: string | null;
+};
+
+export type ServiceOpportunity = {
+  id: string;
+  created_at: string;
+  title: string;
+  description: string | null;
+  contact_name: string | null;
+  contact_info: string | null;
+  availability: string | null;
+  location: string | null;
+};
