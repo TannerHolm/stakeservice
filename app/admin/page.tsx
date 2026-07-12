@@ -58,6 +58,12 @@ export default async function AdminPage() {
             Manage Projects
           </Link>
           <Link
+            href="/admin/carnival"
+            className="px-4 py-2 rounded-full border border-neutral-300 dark:border-neutral-700 text-sm font-medium"
+          >
+            Carnival Sign-ups
+          </Link>
+          <Link
             href="/api/admin/export"
             className="px-4 py-2 rounded-full border border-neutral-300 dark:border-neutral-700 text-sm font-medium"
           >

@@ -4,6 +4,7 @@ import {
   type ServiceEvent,
   type ServiceOpportunity,
 } from "@/lib/supabase";
+import { CARNIVAL_EVENT_ID } from "@/lib/carnival";
 import { GRADIENT_BG } from "@/lib/theme";
 import { EventTime } from "./event-time";
 
@@ -79,12 +80,26 @@ export default async function EventsPage() {
                     {ev.description}
                   </p>
                 )}
-                <a
-                  href={`/events/${ev.id}/ics`}
-                  className="mt-4 inline-block px-5 py-2.5 rounded-full bg-white text-[#2C6F8B] font-medium text-sm hover:bg-white/95"
-                >
-                  Add to calendar
-                </a>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {ev.id === CARNIVAL_EVENT_ID && (
+                    <Link
+                      href="/carnival"
+                      className="inline-block px-5 py-2.5 rounded-full bg-white text-[#2C6F8B] font-medium text-sm hover:bg-white/95"
+                    >
+                      Sign up to volunteer →
+                    </Link>
+                  )}
+                  <a
+                    href={`/events/${ev.id}/ics`}
+                    className={`inline-block px-5 py-2.5 rounded-full font-medium text-sm ${
+                      ev.id === CARNIVAL_EVENT_ID
+                        ? "border border-white/40 text-white hover:bg-white/10"
+                        : "bg-white text-[#2C6F8B] hover:bg-white/95"
+                    }`}
+                  >
+                    Add to calendar
+                  </a>
+                </div>
               </li>
             ))}
           </ul>
